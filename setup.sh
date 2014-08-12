@@ -1,7 +1,6 @@
 #!/bin/sh
 . ./.ezsteamds-resources/jlib.sh
 
-
 RemoveSteam(){
   Header "Removing Steam"
 
