@@ -41,3 +41,16 @@ longline() {
 	cols=$(get_cols); [ "$cols" ] || cols=80
 	echo "$@" | fold -sw$cols
 }
+
+GetServerAppID(){
+  return "`cat /home/steam/Steam/ezsteamappid`"
+}
+
+
+GetServerName(){
+  return "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d | tail -1`"
+}
+
+GetServerPID(){
+  return "`cat /home/steam/Steam/*.pid`"
+}
