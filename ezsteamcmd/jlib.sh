@@ -43,14 +43,9 @@ longline() {
 }
 
 GetServerAppID(){
-  return "`cat /home/steam/Steam/ezsteamappid`"
+  echo "`cat /home/steam/Steam/.ezsteamcmdappid`"
 }
-
 
 GetServerName(){
-  return "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d | tail -1`"
-}
-
-GetServerPID(){
-  return "`cat /home/steam/Steam/*.pid`"
+  echo "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d | tail -1`"
 }

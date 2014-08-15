@@ -1,5 +1,5 @@
 #!/bin/sh
-. ./ezsteamcmd/jlib.sh
+. /usr/etc/ezsteamcmd/jlib.sh
 
 APPID="`basename $0 | cut -d "." -f1`"
 
@@ -8,22 +8,25 @@ APPID="`basename $0 | cut -d "." -f1`"
 
 Install(){
   printf "\n\n"; bold "  Using generic installer for AppID $APPID"; separator; printf "\n"
-  sh ./ezsteamcmd/genericinstall.sh $APPID
+  sh /usr/etc/ezsteamcmd/genericinstall.sh $APPID
+  sudo cp /home/steam/steamcmd/linux32/libstdc++.so.6 /home/steam/Steam/steamapps/common/GarrysModDS/bin/libstdc++.so.6
+  su -c "echo \"+maxplayers 12 +map gmfreespace\" >/home/steam/Steam/steamapps/common/GarrysModDS/srcds_options" steam
 }
 
 Start(){
-  su -c "sh /home/steam/Steam/steamapps/common/GarrysModDS/srcds_run -game garrysmod -pidfile /home/steam/Steam/$APPID.pid" steam
+  if ps | grep "srcds_linux"; then
+    redtext "  Server is already running."
+  else
+    su -c "sh /home/steam/Steam/steamapps/common/GarrysModDS/srcds_run -game garrysmod `cat /home/steam/Steam/steamapps/common/GarrysModDS/srcds_options`" steam &
+  fi
 }
 
 Stop(){
-  if [ -f /home/steam/Steam/$APPID.pid ]; then
-    SRCDSPID="`cat /home/steam/Steam/$APPID.pid`"
-    bold "  Stopping Garry's Mod, PID $SRCDSPID..."
-    kill -SIGINT $SRCDSPID
+    bold "  Stopping Garry's Mod"
+    killall -SIGINT su 2>/dev/null
+    killall -SIGINT srcds_linux 2>/dev/null
+    rm /home/steam/Steam/$APPID.pid 2>/dev/null
     status
-  else
-    redtext "  Server not running."
-  fi
 }
 
 Restart(){
@@ -32,12 +35,13 @@ Restart(){
   Start
 }
 
-if [ ! $1 ]; then
+
+if [ $1 ]; then
+echo "$1"
+  if [ $1 = "start" ]; then Start; fi
+  if [ $1 = "stop" ]; then Stop; fi
+  if [ $1 = "restart" ]; then Restart; fi
+  if [ $1 = "install" ]; then Install; fi
+else
   Install
-elif [ $1 = "Start" ]; then
-  Start
-elif [ $1 = "Stop" ]; then
-  Stop
-elif [ $1 = "Restart" ]; then
-  Restart
 fi

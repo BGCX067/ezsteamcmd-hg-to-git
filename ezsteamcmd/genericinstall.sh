@@ -1,5 +1,5 @@
 #!/bin/sh
-. ./ezsteamcmd/jlib.sh
+. /usr/etc/ezsteamcmd/jlib.sh
 
 APPID="$1"
 
@@ -15,4 +15,4 @@ fi
 
 su -c "bash /home/steam/steamcmd/steamcmd.sh +login $USERNAMEPASSWORD +app_update $APPID validate +quit" steam
 
-echo "$APPID" >/home/steam/Steam/ezsteamappid
+echo "$APPID" >/home/steam/Steam/.ezsteamcmdappid
