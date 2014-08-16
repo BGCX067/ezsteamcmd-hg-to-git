@@ -1,7 +1,6 @@
 #!/bin/sh
 . /usr/etc/ezsteamcmd/jlib.sh
 
-
     ViewAppIDMsg="AppID's are viewable at http://developer.valvesoftware.com/wiki/Steam_Application_IDs"
 #_______________________________________________________Install
 InstallDS(){
@@ -9,7 +8,7 @@ InstallDS(){
     sh /usr/etc/ezsteamcmd/$1.sh
   else
     printf "\n\n"; redtext "  Installation script for AppID $1 not found"; separator
-    longline "This means I have not written an application specific install script for this dedicated server.  I also have not yet written a generic installer script.  This is because I would like to write application specific scripts in most cases, but will do so on request.  To request support please navigate to https://code.google.com/p/ezsteamcmd/issues.  I will also accept requests via email at danielikard@gmail.com"
+    longline "This means I have not written an application specific install script for this dedicated server.  I also have not yet written a generic installer script.  This is because I would like to write application specific scripts in most cases, but will do so on request.  To request support please navigate to `bold https://code.google.com/p/ezsteamcmd/issues`.  I will also accept requests via email at `bold danielikard@gmail.com`"
     printf "\n"
     longline "  $ViewAppIDMsg"
     printf "\n"
@@ -17,16 +16,13 @@ InstallDS(){
     printf "\n"
     exit 0
   fi
-
-  printf "\n%s\n" `separator`; bold "  installds.sh complete!"; printf "\n"
 }
 
 Remove(){
-    invtext "  Removing Steam  "
-    separator
+    Title "Removing Steam"
 
     printf "%s" "  Removing Steam files..."
-    sudo rm -rf /home/steam
+    sudo rm -rf /home/steam 1>/dev/null 2>/dev/null
     status
 
     printf "%s" "  Removing user steam..."
@@ -34,15 +30,22 @@ Remove(){
     status
 
     printf "%s" "  Removing cron job..."
-    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab 1>/dev/null 2>/dev/null
     status
-    separator
+
+    separator; printf "\n"
 }
 
 InstallSteamcmd(){
+  InstallAlt32Libs(){
+    printf "%s" "  Installing 32-bit compatibility libraries..."
+    sudo apt-get install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 1>/dev/null 2>/dev/null
+    status
+  }
   if [ ! $2 ]; then 
-    invtext "  Installing SteamCMD from Valve  "
+    Title "Installing SteamCMD from Valve"
     separator
+
     printf "%s" "  Checking file limit..."
     ulimit -n 2048
     status
@@ -54,12 +57,17 @@ InstallSteamcmd(){
     su -c "mkdir -p /home/steam/steamcmd" steam
     cd /home/steam/steamcmd
 
-    printf "%s" "  Adding cron job"
+    printf "%s" "  Adding cron job..."
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/15 * * * * /home/steam/ezsteamcmd_cron.sh\n" ) | sudo crontab
-    printf "%s" "  Installing cron script"
+    status
+
+    printf "%s" "  Installing cron script..."
     sudo cp -f ./ezsteamcmd/ezsteamcmd_cron.sh /home/steam/ 2>/dev/null
     status
 
+    printf "%s" "  Installing ia32-libs..."
+    sudo apt-get install ia32-libs 1>/dev/null 2>/dev/null
+    status InstallAlt32Libs
 
     printf "%s" "  Downloading steamcmd_linux.tar.gz..."
     su -c "wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz" steam
@@ -81,11 +89,13 @@ InstallSteamcmd(){
   else
     InstallDS $2
   fi
+
+  separator; printf "\n"
 }
 
 Update(){
-    invtext "  Checking for updates  "
-    separator
+    Title "Checking for updates"
+
     printf "%s" "  Checking file limit..."
     ulimit -n 2048
     status
@@ -97,21 +107,25 @@ Update(){
     printf "%s" "  Checking for updates...  (Pass 2 of 2)"
     su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
     status
-    separator
+
     printf "%s" "  Updating 32-bit libraries..."
     mkdir -p /home/steam/.steam/sdk32
     sudo cp /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
     status
+
+    separator; printf "\n"
 }
 
 SambaOn(){
+
   if [ ! -f /etc/samba/smb.conf ]; then
-    invtext "  Enable Samba  "
-    separator
+    Title "Start Samba"
+
     printf "%s" "  Installing Samba..."
     sudo apt-get update
     sudo apt-get install samba
     status
+
     sudo smbpasswd -a steam
     printf "Enter a Samba share name: "; read SambaName
     printf "Enter the workgroup: "; read Workgroup
@@ -138,32 +152,43 @@ SambaOn(){
     force user = steam
     force group = steam
 " >/etc/samba/smb.conf
-    separator
+
+    separator;printf "\n"
   fi
-  printf "%s" "  Starting Samba..."
-  sudo start smbd 1>/dev/null 2>/dev/null
-  status
+  
+  if top -bn 1 | grep "smbd" >/dev/null; then
+    redtext "  Samba is already running"
+  else
+    printf "%s" "  Starting Samba..."
+    sudo start smbd 1>/dev/null 2>/dev/null
+    status
+  fi
+
 }
 
 SambaOff(){
-  invtext "  Disable Samba  "
-  separator
-  sudo stop smbd
+  Title "Stop Samba"
+  
+  printf "%s" "  Stopping Samba..."
+  sudo stop smbd 1>/dev/null 2>/dev/null
   status
-  separator
+  
+  separator; printf "\n"
 }
 
+Usage(){
+  Title "EZSteamCMD"
+  
+  longline "    `bold ex: \'ezsteamcmd install 4020\' or \'ezsteam autostart on\'`\n\n  `bold install`: Installs a Steam dedicated server.  Specify the server by steam_appid.  steam_appid's are viewable at http://steamcommunity/yomamma.  If no specified server, then installs steamcmd only.\n  `bold update`: Updates using steamcmd.\n  `bold remove`: Removes the installed dedicated server.\n  `bold start`: Starts the installed dedicated server.\n  `bold stop`: Stops the installed dedicated server.\n  `bold \"restart\"`: Restarts a specified server.  This may be a soft-restart.\n  `bold \"samba [on|off]\"`: Starts or stops the Samba Steam share.  \n  `bold \"autostart [on|off]\"`: Enables or disables autostart of the specified server on startup."
+
+  separator
+}
 
 #____________________________________________________ Go Time
 
 if [ ! $1 ]; then
-  printf "\n"
-  invtext "        Commands"
-  separator
-  longline "  Install: Installs a Steam dedicated server.  Specify the server by steam_appid.  steam_appid's are viewable at http://steamcommunity/yomamma.\n  Update: Launches the update server wizardfor updating an installed dedicated server.\n  Remove: Launches the remove server wizard for removing an installed dedicated server.\n  Configure: Configure an installed server using it's configuration wizard.\n  Start: Starts a specified server.  An example is \'ezsteamds.sh start 1\'.  If no server number is included a wizard will help you choose.\n  Stop: Stops a specified server.  If no server number is included a wizard will help you choose.\n  Restart: Restarts a specified server.  This may be a soft-restart.  If no server number is included a wizard will help you choose."
-  separator
-  printf "%s" " Command: "
-  read LINE
+  Usage
+  exit 0
 else
   LINE="$1"
 fi
@@ -180,12 +205,20 @@ elif [ "$LINE" = "install" ]; then
   else
     InstallSteamcmd
   fi
-elif [ "$LINE" = "start" ]; then SambaOn; sh /usr/etc/ezsteamcmd/`GetServerAppID`.sh start
+elif [ "$LINE" = "start" ]; then sh /usr/etc/ezsteamcmd/`GetServerAppID`.sh start
 elif [ "$LINE" = "stop" ]; then sh /usr/etc/ezsteamcmd/`GetServerAppID`.sh stop
 elif [ "$LINE" = "restart" ]; then sh /usr/etc/ezsteamcmd/`GetServerAppID`.sh restart
-elif [ "$LINE" = "sambastart" ]; then SambaOn
-elif [ "$LINE" = "sambastop" ]; then SambaOff
+elif [ "$LINE" = "samba" ]; then
+  if [ $2 = "on" ]; then SambaOn
+  elif [ $2 = "off" ]; then SambaOff
+  fi
+elif [ "$LINE" = "autostart" ]; then
+  if [ $2 = "on" ]; then AutoStartOn
+  elif [ $2 = "off" ]; then AutoStartOff
+  fi
+elif [ "$LINE" = "-help"]; then Usage
+elif [ "$LINE" = "--help"]; then Usage
+elif [ "$LINE" = "-h"]; then Usage
 fi
 
-#bold "installsteamcmd.sh complete!"
 exit 0

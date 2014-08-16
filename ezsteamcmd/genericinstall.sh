@@ -13,6 +13,9 @@ else
   USERNAMEPASSWORD="anonymous"
 fi
 
+Title "Installing steam_appid $1"
+bold "  Please wait, this may take a bit..."
+sleep 5
 su -c "bash /home/steam/steamcmd/steamcmd.sh +login $USERNAMEPASSWORD +app_update $APPID validate +quit" steam
 
 echo "$APPID" >/home/steam/Steam/.ezsteamcmdappid

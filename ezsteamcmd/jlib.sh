@@ -13,6 +13,7 @@ status() {
     echo "\033[${scol}G\033[1;32mOK\033[0;39m"
   else
     echo "\033[${scol}G\033[1;31mError\033[0;39m"
+    $1
   fi    
 }
 
@@ -33,8 +34,9 @@ redtext(){
   echo "\033[31m$@\033[0m"
 }
 
-invtext(){
-  echo "\033[7m$@\033[0m"
+Title(){
+  echo "\n\033[7m     $@     \033[0m"
+  separator "="
 }  
 
 longline() {
