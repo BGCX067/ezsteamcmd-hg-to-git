@@ -17,7 +17,7 @@ Install(){
   status
 
   printf "%s" "  Installing srcds_options file..."
-  sudo su -c "echo \"+maxplayers 12 +map gm_construct\" >/home/steam/Steam/steamapps/common/$AppName/srcds_options" steam
+  sudo su -c "echo \"+maxplayers 12 +map gm_flatgrass \" >/home/steam/Steam/steamapps/common/$AppName/srcds_options" steam
   status
 
   separator; printf "\n"
@@ -30,7 +30,7 @@ Start(){
     Title "Start $AppName"
 
     printf "%s" "  Starting $AppName..."
-    sudo su -c "sh /home/steam/Steam/steamapps/common/$AppName/srcds_run -game garrysmod `cat /home/steam/Steam/steamapps/common/$AppName/srcds_options` 1>/home/steam/Steam/logs/$AppName.stout 2>/home/steam/Steam/logs/$AppName.sterr" steam &
+    sudo su -c "sh /home/steam/Steam/steamapps/common/$AppName/srcds_run -game garrysmod `cat /home/steam/Steam/steamapps/common/$AppName/srcds_options`" steam &
     status
 
     separator; printf "\n"

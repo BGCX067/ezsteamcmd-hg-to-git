@@ -12,8 +12,11 @@ status() {
   if [ $check = 0 ]; then
     echo "\033[${scol}G\033[1;32mOK\033[0;39m"
   else
-    echo "\033[${scol}G\033[1;31mError\033[0;39m"
-    $1
+    if [ $@ ]; then
+      $@
+    else
+      echo "\033[${scol}G\033[1;31mError\033[0;39m"
+    fi
   fi    
 }
 
@@ -45,9 +48,9 @@ longline() {
 }
 
 GetServerAppID(){
-  echo "`cat /home/steam/Steam/.ezsteamcmdappid`"
+  echo "`cat /home/steam/.ezsteamcmdappid`"
 }
 
 GetServerName(){
-  echo "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d | tail -1`"
+  echo "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d | tail -1 | rev | cut -d "/" -f1 | rev`"
 }

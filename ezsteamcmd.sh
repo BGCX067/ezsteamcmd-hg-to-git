@@ -33,18 +33,16 @@ Remove(){
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab 1>/dev/null 2>/dev/null
     status
 
-    separator; printf "\n"
 }
 
 InstallSteamcmd(){
   InstallAlt32Libs(){
-    printf "%s" "  Installing 32-bit compatibility libraries..."
+    printf "%s\n%s" "  Not available."  "Checking alternate 32-bit compatibility libraries..."
     sudo apt-get install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 1>/dev/null 2>/dev/null
     status
   }
   if [ ! $2 ]; then 
     Title "Installing SteamCMD from Valve"
-    separator
 
     printf "%s" "  Checking file limit..."
     ulimit -n 2048
@@ -54,82 +52,86 @@ InstallSteamcmd(){
     sudo adduser --disabled-password --gecos "" steam 1>/dev/null 2>/dev/null
     printf ""; status
 
-    su -c "mkdir -p /home/steam/steamcmd" steam
+    sudo su -c "mkdir -p /home/steam/steamcmd" steam
     cd /home/steam/steamcmd
 
     printf "%s" "  Adding cron job..."
-    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/15 * * * * /home/steam/ezsteamcmd_cron.sh\n" ) | sudo crontab
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
     status
 
-    printf "%s" "  Installing cron script..."
-    sudo cp -f ./ezsteamcmd/ezsteamcmd_cron.sh /home/steam/ 2>/dev/null
-    status
-
-    printf "%s" "  Installing ia32-libs..."
+    printf "%s" "  Checking ia32-libs..."
     sudo apt-get install ia32-libs 1>/dev/null 2>/dev/null
     status InstallAlt32Libs
 
     printf "%s" "  Downloading steamcmd_linux.tar.gz..."
-    su -c "wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz" steam
+    sudo wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz
     status
 
     printf "%s" "  Deflating..."
-    su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
+    sudo su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
     status
 
     Update
 
     printf "%s" "  Installing 32-bit libraries..."
     sudo mkdir -p /home/steam/.steam/sdk32
-    sudo cp /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+    sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
     status
 
-    rm -f /home/steam/steamcmd/steamcmd_linux.tar.gz
-    separator
+    sudo rm -f /home/steam/steamcmd/steamcmd_linux.tar.gz
   else
     InstallDS $2
   fi
 
-  separator; printf "\n"
 }
 
 Update(){
     Title "Checking for updates"
+    local APPID="`GetServerAppID`"
+    local APPNAME="`GetServerName`"
 
     printf "%s" "  Checking file limit..."
-    ulimit -n 2048
+    sudo su -c "ulimit -n 2048" steam
     status
 
-    printf "%s" "  Checking for updates...  (Pass 1 of 2)"
-    su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
+    printf "%s" "  Checking for updates for Steam..."
+    sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
     status
 
-    printf "%s" "  Checking for updates...  (Pass 2 of 2)"
-    su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
-    status
+    if [ "$APPID" -lt "99999" ]; then
+      printf "%s" "  Checking for updates for $APPNAME..."
+      sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
+      status
+    fi
 
     printf "%s" "  Updating 32-bit libraries..."
-    mkdir -p /home/steam/.steam/sdk32
-    sudo cp /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+    sudo mkdir -p /home/steam/.steam/sdk32
+    sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
     status
 
-    separator; printf "\n"
 }
 
 SambaOn(){
 
-  if [ ! -f /etc/samba/smb.conf ]; then
+  if [ ! -f /usr/sbin/smbd ]; then
     Title "Start Samba"
 
     printf "%s" "  Installing Samba..."
-    sudo apt-get update
-    sudo apt-get install samba
+    sudo apt-get update 1>/dev/null 2>/dev/null
+    sudo apt-get install samba 1>/dev/null 2>/dev/null
     status
 
-    sudo smbpasswd -a steam
-    printf "Enter a Samba share name: "; read SambaName
-    printf "Enter the workgroup: "; read Workgroup
-    sudo echo "[global]
+    sudo stop smbd 1>/dev/null 2>/dev/null
+    sudo stop nmbd 1>/dev/null 2>/dev/null
+    sudo killall smbd 1>/dev/null 2>/dev/null
+    sudo killall nmbd 1>/dev/null 2>/dev/null
+
+    printf "Enter the SMB user name: "; read SambaUserName
+    sudo smbpasswd -a $SambaUserName
+    sudo smbpasswd -e $SambaUserName
+    printf "Enter the SMB share name: "; read SambaName
+    printf "Enter the SMB share workgroup: "; read Workgroup
+    sudo su -c "echo \"[global]
     netbios name = $SambaName
     server string = $SambaName
     workgroup = $Workgroup
@@ -151,7 +153,7 @@ SambaOn(){
     directory mask = 0755
     force user = steam
     force group = steam
-" >/etc/samba/smb.conf
+\" >/etc/samba/smb.conf" root
 
     separator;printf "\n"
   fi
@@ -161,6 +163,7 @@ SambaOn(){
   else
     printf "%s" "  Starting Samba..."
     sudo start smbd 1>/dev/null 2>/dev/null
+    sudo start nmbd 1>/dev/null 2>/dev/null
     status
   fi
 
@@ -171,10 +174,30 @@ SambaOff(){
   
   printf "%s" "  Stopping Samba..."
   sudo stop smbd 1>/dev/null 2>/dev/null
+  sudo stop nmbd 1>/dev/null 2>/dev/null
   status
   
-  separator; printf "\n"
 }
+
+
+AutoStartOn(){
+    Title "Autostart On"
+
+    printf "%s" "  Adding ezsteamcmd_autostart cron job..."
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "@reboot /usr/etc/ezsteamcmd/ezsteamcmd_autostart.sh\n" ) | sudo crontab
+    status
+
+}
+
+AutoStartOff(){
+    Title "Autostart Off"
+
+    printf "%s" "  Removing ezsteamcmd_autostart cron job..."
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "\n" ) | sudo crontab
+    status
+
+}
+
 
 Usage(){
   Title "EZSteamCMD"

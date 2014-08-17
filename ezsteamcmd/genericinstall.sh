@@ -14,8 +14,11 @@ else
 fi
 
 Title "Installing steam_appid $1"
-bold "  Please wait, this may take a bit..."
+bold "  Downloading.  Please wait, this may take a bit..."
 sleep 5
-su -c "bash /home/steam/steamcmd/steamcmd.sh +login $USERNAMEPASSWORD +app_update $APPID validate +quit" steam
+sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login $USERNAMEPASSWORD +app_update $APPID validate +quit" steam
 
-echo "$APPID" >/home/steam/Steam/.ezsteamcmdappid
+printf "%s" "  Finishing steam_appid..."
+sudo su -c "echo \"$APPID\" >/home/steam/.ezsteamcmdappid" steam
+status
+
