@@ -12,9 +12,9 @@ Install(){
   bold "  Using generic installer for AppID $APPID"
   sh /usr/etc/ezsteamcmd/genericinstall.sh $APPID
   
-  printf "%s" "  Fixing libstdc++.so.6..."
-  sudo cp /home/steam/steamcmd/linux32/libstdc++.so.6 /home/steam/Steam/steamapps/common/$AppName/bin/libstdc++.so.6
-  status
+#  printf "%s" "  Fixing libstdc++.so.6..."
+#  sudo cp /home/steam/steamcmd/linux32/libstdc++.so.6 /home/steam/Steam/steamapps/common/$AppName/bin/libstdc++.so.6
+#  status
 
   printf "%s" "  Installing srcds_options file..."
   sudo su -c "echo \"+maxplayers 12 +map gm_flatgrass \" >/home/steam/Steam/steamapps/common/$AppName/srcds_options" steam

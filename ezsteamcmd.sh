@@ -52,16 +52,22 @@ InstallSteamcmd(){
     sudo adduser --disabled-password --gecos "" steam 1>/dev/null 2>/dev/null
     printf ""; status
 
-    sudo su -c "mkdir -p /home/steam/steamcmd" steam
+    sudo mkdir -p /home/steam/steamcmd
+    printf "%s" "  Checking steam home permissions..."
+    sudo chown -R steam:steam /home/steam
+    status
+
     cd /home/steam/steamcmd
 
     printf "%s" "  Adding cron job..."
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
     status
 
-    printf "%s" "  Checking ia32-libs..."
-    sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
-    status InstallAlt32Libs
+    if [ "`uname -m`" != "i686" ]; then
+      printf "%s" "  Checking ia32-libs..."
+      sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
+      status InstallAlt32Libs
+    fi
 
     printf "%s" "  Downloading steamcmd_linux.tar.gz..."
     sudo wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz
@@ -73,10 +79,12 @@ InstallSteamcmd(){
 
     Update
 
-    printf "%s" "  Installing 32-bit libraries..."
-    sudo mkdir -p /home/steam/.steam/sdk32
-    sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
-    status
+    if [ "`uname -m`" != "i686" ]; then
+      printf "%s" "  Installing 32-bit libraries..."
+      sudo mkdir -p /home/steam/.steam/sdk32
+      sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+      status
+    fi
 
     sudo rm -f /home/steam/steamcmd/steamcmd_linux.tar.gz
   else
@@ -97,17 +105,20 @@ Update(){
     printf "%s" "  Checking for updates for Steam..."
     sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
     status
-
-    if [[ "$APPID" != "" && "$APPID" -lt "99999" ]]; then
-      printf "%s" "  Checking for updates for $APPNAME..."
-      sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
-      status
+    if [ "$APPID" != "" ]; then
+      if [ "$APPID" -lt "99999" ]]; then
+        printf "%s" "  Checking for updates for $APPNAME..."
+        sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
+        status
+      fi
     fi
 
-    printf "%s" "  Updating 32-bit libraries..."
-    sudo mkdir -p /home/steam/.steam/sdk32
-    sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
-    status
+    if [ "`uname -m`" != "i686" ]; then
+      printf "%s" "  Updating 32-bit libraries..."
+      sudo mkdir -p /home/steam/.steam/sdk32
+      sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+      status
+    fi
 
 }
 

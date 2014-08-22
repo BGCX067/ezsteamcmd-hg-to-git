@@ -48,9 +48,9 @@ longline() {
 }
 
 GetServerAppID(){
-  echo "`cat /home/steam/.ezsteamcmdappid`" 1>/dev/null 2>/dev/null
+  echo "`cat /home/steam/.ezsteamcmdappid 2>/dev/null`"
 }
 
 GetServerName(){
-  echo "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d | tail -1 | rev | cut -d "/" -f1 | rev`" 1>/dev/null 2>/dev/null
+  echo "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d 2>/dev/null | tail -1 | rev | cut -d "/" -f1 | rev`"
 }
