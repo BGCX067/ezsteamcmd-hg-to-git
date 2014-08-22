@@ -38,7 +38,7 @@ Remove(){
 InstallSteamcmd(){
   InstallAlt32Libs(){
     printf "%s\n%s" "  Not available."  "Checking alternate 32-bit compatibility libraries..."
-    sudo apt-get install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 1>/dev/null 2>/dev/null
+    sudo apt-get -y install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 1>/dev/null 2>/dev/null
     status
   }
   if [ ! $2 ]; then 
@@ -60,7 +60,7 @@ InstallSteamcmd(){
     status
 
     printf "%s" "  Checking ia32-libs..."
-    sudo apt-get install ia32-libs 1>/dev/null 2>/dev/null
+    sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
     status InstallAlt32Libs
 
     printf "%s" "  Downloading steamcmd_linux.tar.gz..."
@@ -98,7 +98,7 @@ Update(){
     sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
     status
 
-    if [ "$APPID" -lt "99999" ]; then
+    if [[ "$APPID" != "" && "$APPID" -lt "99999" ]]; then
       printf "%s" "  Checking for updates for $APPNAME..."
       sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
       status
@@ -118,7 +118,7 @@ SambaOn(){
 
     printf "%s" "  Installing Samba..."
     sudo apt-get update 1>/dev/null 2>/dev/null
-    sudo apt-get install samba 1>/dev/null 2>/dev/null
+    sudo apt-get -y install samba 1>/dev/null 2>/dev/null
     status
 
     sudo stop smbd 1>/dev/null 2>/dev/null
@@ -202,7 +202,7 @@ AutoStartOff(){
 Usage(){
   Title "EZSteamCMD"
   
-  longline "    `bold ex: \'ezsteamcmd install 4020\' or \'ezsteam autostart on\'`\n\n  `bold install`: Installs a Steam dedicated server.  Specify the server by steam_appid.  steam_appid's are viewable at http://steamcommunity/yomamma.  If no specified server, then installs steamcmd only.\n  `bold update`: Updates using steamcmd.\n  `bold remove`: Removes the installed dedicated server.\n  `bold start`: Starts the installed dedicated server.\n  `bold stop`: Stops the installed dedicated server.\n  `bold \"restart\"`: Restarts a specified server.  This may be a soft-restart.\n  `bold \"samba [on|off]\"`: Starts or stops the Samba Steam share.  \n  `bold \"autostart [on|off]\"`: Enables or disables autostart of the specified server on startup."
+  longline "    `bold ex: \'ezsteamcmd install 4020\' or \'ezsteamcmd autostart on\'`\n\n  `bold install`: Installs a Steam dedicated server.  Specify the server by steam_appid.  Also, \'ezsteamcmd install minecraft\' installs a minecraft server.\n  `bold update`: Updates steamcmd and any installed dedicated server.\n  `bold remove`: Removes the installed dedicated server.\n  `bold start`: Starts the installed dedicated server.\n  `bold stop`: Stops the installed dedicated server.\n  `bold \"restart\"`: Restarts a specified server.  This may be a soft-restart.\n  `bold \"samba [on|off]\"`: Starts or stops the Samba Steam share.  \n  `bold \"autostart [on|off]\"`: Enables or disables autostart of the specified server on startup."
 
   separator
 }
