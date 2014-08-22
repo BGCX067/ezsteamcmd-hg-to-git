@@ -44,9 +44,9 @@ Stop(){
     sudo killall -SIGINT su 2>/dev/null
     status
 
-    printf "%s" "  Stopping $AppName..."
-    sudo killall -SIGINT srcds_linux 2>/dev/null
-    status
+#    printf "%s" "  Stopping $AppName..."
+#    sudo killall -SIGINT srcds_linux 2>/dev/null
+#    status
 
     separator; printf "\n"
 }
