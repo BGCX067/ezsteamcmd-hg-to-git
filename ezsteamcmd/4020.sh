@@ -11,9 +11,17 @@ Install(){
 
   bold "  Using generic installer for AppID $APPID"
   sh /usr/etc/ezsteamcmd/genericinstall.sh $APPID
-  
+ 
+  printf "%s" "  Checking /home/steam/.steam/sdk32..."
+  sudo mkdir -p /home/steam/.steam/sdk32
+  status
+
+  printf "%s" "  Fix: Linking libsteam.so..."
+  sudo ln -s /home/steam/Steam/steamapps/common/GarrysModDS/bin/libsteam.so /home/steam/.steam/sdk32/libsteam.so
+  status
+ 
   if [ "`uname -m`" != "i686" ]; then
-    printf "%s" "  Fixing libstdc++.so.6..."
+    printf "%s" "  Fix: Copying libstdc++.so.6 from steamcmd/linux32..."
     sudo cp /home/steam/steamcmd/linux32/libstdc++.so.6 /home/steam/Steam/steamapps/common/$AppName/bin/libstdc++.so.6
     status
   fi
@@ -22,8 +30,12 @@ Install(){
   sudo su -c "echo \"+maxplayers 12 +map gm_flatgrass \" >/home/steam/Steam/steamapps/common/$AppName/srcds_options" steam
   status
 
-  printf "%s" "  Creating basic server.cfg...  Please edit before starting."
+  printf "%s" "  Creating basic server.cfg...  `redtext Please edit before starting.`"
   CreateServerConfig
+  status
+
+  printf "%s" "  Checking permissions..."
+  sudo chown -R steam:steam /home/steam
   status
 
   printf "\n"
@@ -63,15 +75,6 @@ Restart(){
   Start
 }
 
-
-if [ $1 ]; then
-  if [ $1 = "start" ]; then Start; fi
-  if [ $1 = "stop" ]; then Stop; fi
-  if [ $1 = "restart" ]; then Restart; fi
-  if [ $1 = "install" ]; then Install; fi
-else
-  Install
-fi
 
 CreateServerConfig(){
   echo "hostname		/"Unnamed Server/"
@@ -121,3 +124,14 @@ exec banned_user.cfg
 " >/home/steam/Steam/steamapps/common/GarrysModDS/garrysmod/cfg/server.cfg
 }
 
+
+
+
+if [ $1 ]; then
+  if [ $1 = "start" ]; then Start; fi
+  if [ $1 = "stop" ]; then Stop; fi
+  if [ $1 = "restart" ]; then Restart; fi
+  if [ $1 = "install" ]; then Install; fi
+else
+  Install
+fi

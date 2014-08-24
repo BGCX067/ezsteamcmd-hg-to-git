@@ -21,23 +21,12 @@ InstallDS(){
 Remove(){
     local APPID="`GetServerAppID`"
     Title "Removing Steam"
-
     if [ "$APPID" != "" ]; then
       sh /usr/etc/ezsteamcmd/$APPID.sh stop
     fi
-
-    printf "%s" "  Removing Steam files..."
-    sudo rm -rf /home/steam 1>/dev/null 2>/dev/null
-    status
-
-    printf "%s" "  Removing user steam..."
-    sudo deluser steam 1>/dev/null 2>/dev/null
-    status
-
-    printf "%s" "  Removing cron job..."
-    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab 1>/dev/null 2>/dev/null
-    status
-
+    Doit "Removing Steam files..." sudo rm -rf /home/steam 1>/dev/null 2>/dev/null
+    Doit "Removing user steam..." sudo deluser steam 1>/dev/null 2>/dev/null
+    Doit "Removing cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab 1>/dev/null 2>/dev/null
 }
 
 InstallSteamcmd(){
@@ -48,100 +37,56 @@ InstallSteamcmd(){
   }
   if [ ! $2 ]; then 
     Title "Installing SteamCMD from Valve"
-
-    printf "%s" "  Checking file limit..."
-    ulimit -n 2048
-    status
-
-    printf "%s" "  Checking user steam..."
-    sudo adduser --disabled-password --gecos "" steam 1>/dev/null 2>/dev/null
-    printf ""; status
-
+    Doit "Checking file limit..." ulimit -n 2048
+    Doit "Checking user steam..." sudo adduser --disabled-password --gecos "" steam 1>/dev/null 2>/dev/null
     sudo mkdir -p /home/steam/steamcmd
-    printf "%s" "  Checking steam home permissions..."
-    sudo chown -R steam:steam /home/steam
-    status
-
+    Doit "Checking steam home permissions..." sudo chown -R steam:steam /home/steam
     cd /home/steam/steamcmd
-
-    printf "%s" "  Adding cron job..."
-    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
-    status
-
+    Doit "Adding cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
     if [ "`uname -m`" != "i686" ]; then
-      printf "%s" "  Checking ia32-libs..."
-      sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
-      status InstallAlt32Libs
+      Tryit "Checking ia32-libs..." InstallAlt32Libs sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
     fi
-
-    printf "%s" "  Downloading steamcmd_linux.tar.gz..."
-    sudo wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz
-    status
-
-    printf "%s" "  Deflating..."
-    sudo su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
-    status
+    Doit "Downloading steamcmd_linux.tar.gz..." sudo wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz
+    Doit "Deflating..." sudo su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
     sudo rm -f /home/steam/steamcmd/steamcmd_linux.tar.gz
-
     Update
-
     if [ "`uname -m`" != "i686" ]; then
-      printf "%s" "  Installing 32-bit libraries..."
       sudo mkdir -p /home/steam/.steam/sdk32
-      sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
-      status
+      Doit "Installing 32-bit libraries..." sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
     fi
-
   else
     InstallDS $2
   fi
-
 }
 
 Update(){
     Title "Checking for updates"
     local APPID="`GetServerAppID`"
     local APPNAME="`GetServerName`"
-
-    printf "%s" "  Checking file limit..."
-    sudo su -c "ulimit -n 2048" steam
-    status
-
-    printf "%s" "  Checking for updates for Steam..."
-    sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
-    status
+    Doit "Checking file limit..." sudo su -c "ulimit -n 2048" steam
+    Doit "Checking for updates for Steam..." sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
     if [ "$APPID" != "" ]; then
-      if [ "$APPID" -lt "99999" ]]; then
-        printf "%s" "  Checking for updates for $APPNAME..."
-        sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
+      if [ "$APPID" -lt "99999" ]; then
+        Doit "Checking for updates for $APPNAME..." sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
         status
       fi
     fi
-
     if [ "`uname -m`" != "i686" ]; then
-      printf "%s" "  Updating 32-bit libraries..."
       sudo mkdir -p /home/steam/.steam/sdk32
-      sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
-      status
+      Doit "Updating 32-bit libraries..." sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
     fi
-
 }
 
 SambaOn(){
 
   if [ ! -f /usr/sbin/smbd ]; then
     Title "Start Samba"
-
-    printf "%s" "  Installing Samba..."
-    sudo apt-get update 1>/dev/null 2>/dev/null
-    sudo apt-get -y install samba 1>/dev/null 2>/dev/null
-    status
-
+    Doit "Updating repositories..." sudo apt-get update 1>/dev/null 2>/dev/null
+    Doit "Installing Samba..." sudo apt-get -y install samba 1>/dev/null 2>/dev/null
     sudo stop smbd 1>/dev/null 2>/dev/null
     sudo stop nmbd 1>/dev/null 2>/dev/null
     sudo killall smbd 1>/dev/null 2>/dev/null
     sudo killall nmbd 1>/dev/null 2>/dev/null
-
     printf "Enter the SMB user name: "; read SambaUserName
     sudo smbpasswd -a $SambaUserName
     sudo smbpasswd -e $SambaUserName
@@ -170,57 +115,39 @@ SambaOn(){
     force user = steam
     force group = steam
 \" >/etc/samba/smb.conf" root
-
-    separator;printf "\n"
+    printf "\n"
   fi
-  
   if top -bn 1 | grep "smbd" >/dev/null; then
     redtext "  Samba is already running"
   else
-    printf "%s" "  Starting Samba..."
-    sudo start smbd 1>/dev/null 2>/dev/null
-    sudo start nmbd 1>/dev/null 2>/dev/null
-    status
+    Doit "Starting smbd..." sudo start smbd 1>/dev/null 2>/dev/null
+    Doit "Starting nmbd..." sudo start nmbd 1>/dev/null 2>/dev/null
   fi
 
 }
 
 SambaOff(){
   Title "Stop Samba"
-  
-  printf "%s" "  Stopping Samba..."
-  sudo stop smbd 1>/dev/null 2>/dev/null
-  sudo stop nmbd 1>/dev/null 2>/dev/null
-  status
-  
+  Doit "Stopping smbd..." sudo stop smbd 1>/dev/null 2>/dev/null
+  Doit "Stopping nmbd..." sudo stop nmbd 1>/dev/null 2>/dev/null
 }
 
 
 AutoStartOn(){
     Title "Autostart On"
-
-    printf "%s" "  Adding ezsteamcmd_autostart cron job..."
-    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "@reboot /usr/etc/ezsteamcmd/ezsteamcmd_autostart.sh\n" ) | sudo crontab
-    status
-
+    Doit "Adding ezsteamcmd_autostart cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "@reboot /usr/etc/ezsteamcmd/ezsteamcmd_autostart.sh\n" ) | sudo crontab
 }
 
 AutoStartOff(){
     Title "Autostart Off"
-
-    printf "%s" "  Removing ezsteamcmd_autostart cron job..."
-    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "\n" ) | sudo crontab
-    status
-
+    Doit "Removing ezsteamcmd_autostart cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "\n" ) | sudo crontab
 }
 
 
 Usage(){
   Title "EZSteamCMD"
-  
   longline "    `bold ex: \'ezsteamcmd install 4020\' or \'ezsteamcmd autostart on\'`\n\n  `bold install`: Installs a Steam dedicated server.  Specify the server by steam_appid.  Also, \"ezsteamcmd install minecraft\" installs a minecraft server.\n  `bold update`: Updates steamcmd and any installed dedicated server.\n  `bold remove`: Removes the installed dedicated server.\n  `bold start`: Starts the installed dedicated server.\n  `bold stop`: Stops the installed dedicated server.\n  `bold \"restart\"`: Restarts a specified server.  This may be a soft-restart.\n  `bold \"samba [on|off]\"`: Starts or stops the Samba Steam share.  \n  `bold \"autostart [on|off]\"`: Enables or disables autostart of the specified server on startup."
-
-  separator
+  printf "\n"
 }
 
 #____________________________________________________ Go Time

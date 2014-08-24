@@ -54,3 +54,19 @@ GetServerAppID(){
 GetServerName(){
   echo "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d 2>/dev/null | tail -1 | rev | cut -d "/" -f1 | rev`"
 }
+
+Doit(){
+  printf "%s" "  $1"
+  shift
+  $@ 1>/dev/null 2>/dev/null
+  status
+}
+
+Tryit(){
+  printf "%s" "  $1"
+  local ERRORCMD="$2"
+  shift
+  shift
+  $@ 1>/dev/null 2>/dev/null
+  status "$ERRORCMD"
+}
