@@ -19,7 +19,12 @@ InstallDS(){
 }
 
 Remove(){
+    local APPID="`GetServerAppID`"
     Title "Removing Steam"
+
+    if [ "$APPID" != "" ]; then
+      sh /usr/etc/ezsteamcmd/$APPID.sh stop
+    fi
 
     printf "%s" "  Removing Steam files..."
     sudo rm -rf /home/steam 1>/dev/null 2>/dev/null
@@ -76,6 +81,7 @@ InstallSteamcmd(){
     printf "%s" "  Deflating..."
     sudo su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
     status
+    sudo rm -f /home/steam/steamcmd/steamcmd_linux.tar.gz
 
     Update
 
@@ -86,7 +92,6 @@ InstallSteamcmd(){
       status
     fi
 
-    sudo rm -f /home/steam/steamcmd/steamcmd_linux.tar.gz
   else
     InstallDS $2
   fi
@@ -213,7 +218,7 @@ AutoStartOff(){
 Usage(){
   Title "EZSteamCMD"
   
-  longline "    `bold ex: \'ezsteamcmd install 4020\' or \'ezsteamcmd autostart on\'`\n\n  `bold install`: Installs a Steam dedicated server.  Specify the server by steam_appid.  Also, \'ezsteamcmd install minecraft\' installs a minecraft server.\n  `bold update`: Updates steamcmd and any installed dedicated server.\n  `bold remove`: Removes the installed dedicated server.\n  `bold start`: Starts the installed dedicated server.\n  `bold stop`: Stops the installed dedicated server.\n  `bold \"restart\"`: Restarts a specified server.  This may be a soft-restart.\n  `bold \"samba [on|off]\"`: Starts or stops the Samba Steam share.  \n  `bold \"autostart [on|off]\"`: Enables or disables autostart of the specified server on startup."
+  longline "    `bold ex: \'ezsteamcmd install 4020\' or \'ezsteamcmd autostart on\'`\n\n  `bold install`: Installs a Steam dedicated server.  Specify the server by steam_appid.  Also, \"ezsteamcmd install minecraft\" installs a minecraft server.\n  `bold update`: Updates steamcmd and any installed dedicated server.\n  `bold remove`: Removes the installed dedicated server.\n  `bold start`: Starts the installed dedicated server.\n  `bold stop`: Stops the installed dedicated server.\n  `bold \"restart\"`: Restarts a specified server.  This may be a soft-restart.\n  `bold \"samba [on|off]\"`: Starts or stops the Samba Steam share.  \n  `bold \"autostart [on|off]\"`: Enables or disables autostart of the specified server on startup."
 
   separator
 }
