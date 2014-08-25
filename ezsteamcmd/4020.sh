@@ -46,7 +46,7 @@ Start(){
   else
     Title "Start $AppName"
 
-    printf "%s" "Starting $AppName..."
+    printf "%s" "  Starting $AppName..."
     sudo su -c "sh /home/steam/Steam/steamapps/common/$AppName/srcds_run -game garrysmod `cat /home/steam/Steam/steamapps/common/$AppName/srcds_options`" steam
     status
 
@@ -61,7 +61,7 @@ Stop(){
     sudo killall -SIGINT su 1>/dev/null 2>/dev/null
     status
 
-    printf "%s" "Stopping $AppName..."
+    printf "%s" "  Stopping $AppName..."
     sudo killall -g srcds_linux 1>/dev/null 2>/dev/null
     status
 

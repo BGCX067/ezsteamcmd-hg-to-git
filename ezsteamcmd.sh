@@ -61,19 +61,19 @@ InstallSteamcmd(){
     status
 
     cd /home/steam/steamcmd
-    printf "%s" "Adding cron job..."
+    printf "%s" "  Adding cron job..."
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
     status
     if [ "`uname -m`" != "i686" ]; then
-      printf "%s" "Checking ia32-libs..."
+      printf "%s" "  Checking ia32-libs..."
       sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
       status InstallAlt32Libs
     fi
-    printf "%s" "Downloading steamcmd_linux.tar.gz..."
+    printf "%s" "  Downloading steamcmd_linux.tar.gz..."
     sudo wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz
     status
 
-    printf "%s" "Deflating..."
+    printf "%s" "  Deflating..."
     sudo su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
     status
 
@@ -81,7 +81,7 @@ InstallSteamcmd(){
     Update
     if [ "`uname -m`" != "i686" ]; then
       sudo mkdir -p /home/steam/.steam/sdk32
-      printf "%s" "Installing 32-bit libraries..."
+      printf "%s" "  Installing 32-bit libraries..."
       sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
       status
     fi
@@ -95,11 +95,11 @@ Update(){
     local APPID="`GetServerAppID`"
     local APPNAME="`GetServerName`"
 
-    printf "%s" "Checking file limit..."
+    printf "%s" "  Checking file limit..."
     sudo su -c "ulimit -n 2048" steam
     status
 
-    printf "%s" "Checking for updates for Steam..."
+    printf "%s" "  Checking for updates for Steam..."
     sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
     status
 
@@ -127,7 +127,7 @@ SambaOn(){
     sudo apt-get update 1>/dev/null 2>/dev/null
     status
 
-    printf "%s" "Installing Samba..."
+    printf "%s" "  Installing Samba..."
     sudo apt-get -y install samba 1>/dev/null 2>/dev/null
     status
 
@@ -135,11 +135,11 @@ SambaOn(){
     sudo stop nmbd 1>/dev/null 2>/dev/null
     sudo killall smbd 1>/dev/null 2>/dev/null
     sudo killall nmbd 1>/dev/null 2>/dev/null
-    printf "Enter the SMB user name: "; read SambaUserName
+    printf "  Enter the SMB user name: "; read SambaUserName
     sudo smbpasswd -a $SambaUserName
     sudo smbpasswd -e $SambaUserName
-    printf "Enter the SMB share name: "; read SambaName
-    printf "Enter the SMB share workgroup: "; read Workgroup
+    printf "  Enter the SMB share name: "; read SambaName
+    printf "  Enter the SMB share workgroup: "; read Workgroup
     sudo su -c "echo \"[global]
     netbios name = $SambaName
     server string = $SambaName
@@ -194,7 +194,7 @@ SambaOff(){
 
 AutoStartOn(){
     Title "Autostart On"
-    printf "%s" "Adding ezsteamcmd_autostart cron job..."
+    printf "%s" "  Adding ezsteamcmd_autostart cron job..."
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "@reboot /usr/etc/ezsteamcmd/ezsteamcmd_autostart.sh\n" ) | sudo crontab
     status
 }
@@ -204,22 +204,6 @@ AutoStartOff(){
     printf "%s" "  Removing ezsteamcmd_autostart cron job..."
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "\n" ) | sudo crontab
     status
-}
-
-SudoersModAdd(){
-  echo "#!/bin/bash
-  echo \"\`sudo cat /etc/sudoers2 | grep -Fv ezsteamcmd; echo '%sudo ALL=NOPASSWD: /usr/bin/ezsteamcmd'\`\" >/etc/sudoers2" >/tmp/ezsteamcmd.sudoersmod
-  sudo chmod a+rx /tmp/ezsteamcmd.sudoersmod
-  sudo /tmp/ezsteamcmd.sudoersmod
-  rm -rf /tmp/ezsteamcmd.sudoersmod
-}
-
-SudoersModRemove(){
-  echo "#!/bin/bash
-  echo \"\`sudo cat /etc/sudoers2 | grep -Fv ezsteamcmd; echo '%sudo ALL=NOPASSWD: /usr/bin/ezsteamcmd'\`\" >/etc/sudoers2" >/tmp/ezsteamcmd.sudoersmod
-  sudo chmod a+rx /tmp/ezsteamcmd.sudoersmod
-  sudo /tmp/ezsteamcmd.sudoersmod
-  rm -rf /tmp/ezsteamcmd.sudoersmod
 }
 
 Usage(){
