@@ -10,16 +10,33 @@ Install(){
   Title "Install $AppName"
   bold "  Using generic installer for AppID $APPID"
   sh /usr/etc/ezsteamcmd/genericinstall.sh $APPID
-  Doit "Checking /home/steam/.steam/sdk32..." sudo mkdir -p /home/steam/.steam/sdk32
-  Doit "Fix: Linking libsteam.so..." sudo ln -s /home/steam/Steam/steamapps/common/GarrysModDS/bin/libsteam.so /home/steam/.steam/sdk32/libsteam.so
+
+  printf "%s" "  Checking /home/steam/.steam/sdk32..."
+  sudo mkdir -p /home/steam/.steam/sdk32
+  status
+
+  printf "%s" "  Fix: Linking libsteam.so..."
+  sudo ln -s /home/steam/Steam/steamapps/common/GarrysModDS/bin/libsteam.so /home/steam/.steam/sdk32/libsteam.so
+  status
+
   if [ "`uname -m`" != "i686" ]; then
     printf "%s" "  Fix: Copying libstdc++.so.6 from steamcmd/linux32..."
     sudo cp /home/steam/steamcmd/linux32/libstdc++.so.6 /home/steam/Steam/steamapps/common/$AppName/bin/libstdc++.so.6
     status
   fi
-  Doit "Installing srcds_options file..." sudo su -c "echo \"+maxplayers 12 +map gm_flatgrass \" >/home/steam/Steam/steamapps/common/$AppName/srcds_options" steam
-  Doit "Creating basic server.cfg...  `redtext Please edit before starting.`" CreateServerConfig
-  Doit "Checking permissions..." sudo chown -R steam:steam /home/steam 2>/dev/null
+
+  printf "%s" "  Installing srcds_options file..."
+  sudo su -c "echo \"+maxplayers 12 +map gm_flatgrass \" >/home/steam/Steam/steamapps/common/$AppName/srcds_options" steam
+  status
+
+  printf "%s" "  Creating basic server.cfg...  `redtext Please edit before starting.`"
+  CreateServerConfig
+  status
+
+  printf "%s" "  Checking permissions..."
+  sudo chown -R steam:steam /home/steam 2>/dev/null
+  status
+
   printf "\n"
 }
 
@@ -28,15 +45,26 @@ Start(){
     redtext "  $AppName is already running."
   else
     Title "Start $AppName"
-    Doit "Starting $AppName..." sudo su -c "sh /home/steam/Steam/steamapps/common/$AppName/srcds_run -game garrysmod `cat /home/steam/Steam/steamapps/common/$AppName/srcds_options`" steam
+
+    printf "%s" "Starting $AppName..."
+    sudo su -c "sh /home/steam/Steam/steamapps/common/$AppName/srcds_run -game garrysmod `cat /home/steam/Steam/steamapps/common/$AppName/srcds_options`" steam
+    status
+
     printf "\n"
   fi
 }
 
 Stop(){
     Title "Stop $AppName"
-    Doit "Stopping srcds daemon..." sudo killall -SIGINT su 1>/dev/null 2>/dev/null
-    Doit "Stopping $AppName..." sudo killall -g srcds_linux 1>/dev/null 2>/dev/null
+
+    printf "%s" "  Stopping srcds daemon..."
+    sudo killall -SIGINT su 1>/dev/null 2>/dev/null
+    status
+
+    printf "%s" "Stopping $AppName..."
+    sudo killall -g srcds_linux 1>/dev/null 2>/dev/null
+    status
+
     printf "\n"
 }
 

@@ -24,9 +24,16 @@ Remove(){
     if [ "$APPID" != "" ]; then
       sh /usr/etc/ezsteamcmd/$APPID.sh stop
     fi
-    Doit "Removing Steam files..." sudo rm -rf /home/steam 1>/dev/null 2>/dev/null
-    Doit "Removing user steam..." sudo deluser steam 1>/dev/null 2>/dev/null
-    printf "%s" "Removing cron job..."
+
+    printf "%s" "  Removing Steam files..."
+    sudo rm -rf /home/steam 1>/dev/null 2>/dev/null
+    status
+
+    printf "%s" "  Removing user steam..."
+    sudo deluser steam 1>/dev/null 2>/dev/null
+    status
+
+    printf "%s" "  Removing cron job..."
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab 1>/dev/null 2>/dev/null
     status
 }
@@ -39,24 +46,44 @@ InstallSteamcmd(){
   }
   if [ ! $2 ]; then 
     Title "Installing SteamCMD from Valve"
-    Doit "Checking file limit..." ulimit -n 2048
-    Doit "Checking user steam..." sudo adduser --disabled-password --gecos "" steam 1>/dev/null 2>/dev/null
+
+    printf "%s" "  Checking file limit..."
+    ulimit -n 2048
+    status
+
+    printf "%s" "  Checking user steam..."
+    sudo adduser --disabled-password --gecos "" steam 1>/dev/null 2>/dev/null
+    status
+
     sudo mkdir -p /home/steam/steamcmd
-    Doit "Checking steam home permissions..." sudo chown -R steam:steam /home/steam
+    printf "%s" "  Checking steam home permissions..."
+    sudo chown -R steam:steam /home/steam
+    status
+
     cd /home/steam/steamcmd
-    Doit "%s" "Adding cron job..."
+    printf "%s" "Adding cron job..."
     ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
     status
     if [ "`uname -m`" != "i686" ]; then
-      Tryit "Checking ia32-libs..." InstallAlt32Libs sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
+      printf "%s" "Checking ia32-libs..."
+      sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
+      status InstallAlt32Libs
     fi
-    Doit "Downloading steamcmd_linux.tar.gz..." sudo wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz
-    Doit "Deflating..." sudo su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
+    printf "%s" "Downloading steamcmd_linux.tar.gz..."
+    sudo wget -cq http://media.steampowered.com/installer/steamcmd_linux.tar.gz
+    status
+
+    printf "%s" "Deflating..."
+    sudo su -c "tar -xvzf /home/steam/steamcmd/steamcmd_linux.tar.gz 1>/dev/null" steam
+    status
+
     sudo rm -f /home/steam/steamcmd/steamcmd_linux.tar.gz
     Update
     if [ "`uname -m`" != "i686" ]; then
       sudo mkdir -p /home/steam/.steam/sdk32
-      Doit "Installing 32-bit libraries..." sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+      printf "%s" "Installing 32-bit libraries..."
+      sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+      status
     fi
   else
     InstallDS $2
@@ -67,17 +94,27 @@ Update(){
     Title "Checking for updates"
     local APPID="`GetServerAppID`"
     local APPNAME="`GetServerName`"
-    Doit "Checking file limit..." sudo su -c "ulimit -n 2048" steam
-    Doit "Checking for updates for Steam..." sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
+
+    printf "%s" "Checking file limit..."
+    sudo su -c "ulimit -n 2048" steam
+    status
+
+    printf "%s" "Checking for updates for Steam..."
+    sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +quit 1>/dev/null" steam
+    status
+
     if [ "$APPID" != "" ]; then
       if [ "$APPID" -lt "99999" ]; then
-        Doit "Checking for updates for $APPNAME..." sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
+        printf "%s" "  Checking for updates for $APPNAME..."
+        sudo su -c "bash /home/steam/steamcmd/steamcmd.sh +login anonymous +app_update $APPID validate +quit 1>/dev/null" steam
         status
       fi
     fi
     if [ "`uname -m`" != "i686" ]; then
+      printf "%s" "  Updating 32-bit libraries..."
       sudo mkdir -p /home/steam/.steam/sdk32
-      Doit "Updating 32-bit libraries..." sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+      sudo cp -f /home/steam/steamcmd/linux32/* /home/steam/.steam/sdk32/
+      status
     fi
 }
 
@@ -85,8 +122,15 @@ SambaOn(){
 
   if [ ! -f /usr/sbin/smbd ]; then
     Title "Start Samba"
-    Doit "Updating repositories..." sudo apt-get update 1>/dev/null 2>/dev/null
-    Doit "Installing Samba..." sudo apt-get -y install samba 1>/dev/null 2>/dev/null
+
+    printf "%s" "  Updating repositories..."
+    sudo apt-get update 1>/dev/null 2>/dev/null
+    status
+
+    printf "%s" "Installing Samba..."
+    sudo apt-get -y install samba 1>/dev/null 2>/dev/null
+    status
+
     sudo stop smbd 1>/dev/null 2>/dev/null
     sudo stop nmbd 1>/dev/null 2>/dev/null
     sudo killall smbd 1>/dev/null 2>/dev/null
@@ -124,16 +168,27 @@ SambaOn(){
   if top -bn 1 | grep "smbd" >/dev/null; then
     redtext "  Samba is already running"
   else
-    Doit "Starting smbd..." sudo start smbd 1>/dev/null 2>/dev/null
-    Doit "Starting nmbd..." sudo start nmbd 1>/dev/null 2>/dev/null
+    printf "%s" "  Starting smbd..."
+    sudo start smbd 1>/dev/null 2>/dev/null
+    status
+
+    printf "%s" "  Starting nmbd..."
+    sudo start nmbd 1>/dev/null 2>/dev/null
+    status
   fi
 
 }
 
 SambaOff(){
   Title "Stop Samba"
-  Doit "Stopping smbd..." sudo stop smbd 1>/dev/null 2>/dev/null
-  Doit "Stopping nmbd..." sudo stop nmbd 1>/dev/null 2>/dev/null
+
+  printf "%s" "  Stopping smbd..."
+  sudo stop smbd 1>/dev/null 2>/dev/null
+  status
+
+  printf "%s" "  Stopping nmbd..."
+  sudo stop nmbd 1>/dev/null 2>/dev/null
+  status
 }
 
 
@@ -151,6 +206,21 @@ AutoStartOff(){
     status
 }
 
+SudoersModAdd(){
+  echo "#!/bin/bash
+  echo \"\`sudo cat /etc/sudoers2 | grep -Fv ezsteamcmd; echo '%sudo ALL=NOPASSWD: /usr/bin/ezsteamcmd'\`\" >/etc/sudoers2" >/tmp/ezsteamcmd.sudoersmod
+  sudo chmod a+rx /tmp/ezsteamcmd.sudoersmod
+  sudo /tmp/ezsteamcmd.sudoersmod
+  rm -rf /tmp/ezsteamcmd.sudoersmod
+}
+
+SudoersModRemove(){
+  echo "#!/bin/bash
+  echo \"\`sudo cat /etc/sudoers2 | grep -Fv ezsteamcmd; echo '%sudo ALL=NOPASSWD: /usr/bin/ezsteamcmd'\`\" >/etc/sudoers2" >/tmp/ezsteamcmd.sudoersmod
+  sudo chmod a+rx /tmp/ezsteamcmd.sudoersmod
+  sudo /tmp/ezsteamcmd.sudoersmod
+  rm -rf /tmp/ezsteamcmd.sudoersmod
+}
 
 Usage(){
   Title "EZSteamCMD"

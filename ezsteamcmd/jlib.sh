@@ -1,10 +1,10 @@
 #!/bin/sh
 
-get_cols() {
+get_cols(){
 	stty size 2>/dev/null | cut -d " " -f 2
 }
 
-status() {
+status(){
   local check=$?
   local cols=$(get_cols)
   [ "$cols" ] || cols=80
@@ -20,7 +20,7 @@ status() {
   fi    
 }
 
-separator() {
+separator(){
   if [ $1 ]; then local sepchar="$1"; else local sepchar="_"; fi
   local cols=$(get_cols)
   [ "$cols" ] || cols=80
@@ -42,7 +42,7 @@ Title(){
   separator "="
 }  
 
-longline() {
+longline(){
 	cols=$(get_cols); [ "$cols" ] || cols=80
 	echo "$@" | fold -sw$cols
 }
@@ -55,18 +55,3 @@ GetServerName(){
   echo "`find /home/steam/Steam/steamapps/common/ -maxdepth 1 -type d 2>/dev/null | tail -1 | rev | cut -d "/" -f1 | rev`"
 }
 
-Doit(){
-  printf "%s" "  $1"
-  shift
-  $@
-  status
-}
-
-Tryit(){
-  printf "%s" "  $1"
-  local ERRORCMD="$2"
-  shift
-  shift
-  $@
-  status "$ERRORCMD"
-}
