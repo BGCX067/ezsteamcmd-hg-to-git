@@ -24,8 +24,5 @@ while top -bn 1 | grep "steamcmd" >/dev/null; do
   sleep 1
 done
 
-
-printf "%s" "  Finishing steam_appid..."
-sudo su -c "echo \"$APPID\" >/home/steam/.ezsteamcmdappid" steam
-status
+Doit "Finishing steam_appid..." sudo su -c "echo \"$APPID\" >/home/steam/.ezsteamcmdappid" steam
 

@@ -58,7 +58,7 @@ GetServerName(){
 Doit(){
   printf "%s" "  $1"
   shift
-  $@ 1>/dev/null 2>/dev/null
+  $@
   status
 }
 
@@ -67,6 +67,6 @@ Tryit(){
   local ERRORCMD="$2"
   shift
   shift
-  $@ 1>/dev/null 2>/dev/null
+  $@
   status "$ERRORCMD"
 }

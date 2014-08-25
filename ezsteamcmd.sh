@@ -26,7 +26,9 @@ Remove(){
     fi
     Doit "Removing Steam files..." sudo rm -rf /home/steam 1>/dev/null 2>/dev/null
     Doit "Removing user steam..." sudo deluser steam 1>/dev/null 2>/dev/null
-    Doit "Removing cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab 1>/dev/null 2>/dev/null
+    printf "%s" "Removing cron job..."
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh ) | sudo crontab 1>/dev/null 2>/dev/null
+    status
 }
 
 InstallSteamcmd(){
@@ -42,7 +44,9 @@ InstallSteamcmd(){
     sudo mkdir -p /home/steam/steamcmd
     Doit "Checking steam home permissions..." sudo chown -R steam:steam /home/steam
     cd /home/steam/steamcmd
-    Doit "Adding cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
+    Doit "%s" "Adding cron job..."
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_cron.sh; printf -- "*/5 * * * * /usr/etc/ezsteamcmd/ezsteamcmd_cron.sh\n" ) | sudo crontab
+    status
     if [ "`uname -m`" != "i686" ]; then
       Tryit "Checking ia32-libs..." InstallAlt32Libs sudo apt-get -y install ia32-libs 1>/dev/null 2>/dev/null
     fi
@@ -135,12 +139,16 @@ SambaOff(){
 
 AutoStartOn(){
     Title "Autostart On"
-    Doit "Adding ezsteamcmd_autostart cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "@reboot /usr/etc/ezsteamcmd/ezsteamcmd_autostart.sh\n" ) | sudo crontab
+    printf "%s" "Adding ezsteamcmd_autostart cron job..."
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "@reboot /usr/etc/ezsteamcmd/ezsteamcmd_autostart.sh\n" ) | sudo crontab
+    status
 }
 
 AutoStartOff(){
     Title "Autostart Off"
-    Doit "Removing ezsteamcmd_autostart cron job..." ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "\n" ) | sudo crontab
+    printf "%s" "  Removing ezsteamcmd_autostart cron job..."
+    ( sudo crontab -l 2>/dev/null | grep -Fv ezsteamcmd_autostart.sh; printf -- "\n" ) | sudo crontab
+    status
 }
 
 
